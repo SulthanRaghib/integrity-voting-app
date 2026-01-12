@@ -48,12 +48,3 @@ jobs:
             .env.example
             .editorconfig
             .github/**
-
-      - name: 🚀 Trigger Database Migration
-        if: success()
-        run: |
-          echo "Triggering migration via URL..."
-          # Menambahkan User-Agent Chrome
-          RESPONSE=$(curl -L -f -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -X GET "https://voting-app.page.gd/deploy/migrate?key=${{ secrets.DEPLOYMENT_KEY }}")
-
-          echo "$RESPONSE"
