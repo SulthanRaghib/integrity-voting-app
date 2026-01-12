@@ -25,7 +25,37 @@
                 display: none !important;
             }
         }
+
+        /* Driver.js accessibility tweaks for elderly users */
+        .driver-popover {
+            font-size: 1.125rem;
+            /* larger text */
+            line-height: 1.5;
+        }
+
+        .driver-btn,
+        .driver-prev-btn,
+        .driver-next-btn,
+        .driver-done-btn {
+            font-size: 1rem;
+            padding: 0.6rem 1rem;
+        }
+
+        /* High contrast for popovers */
+        .driver-popover,
+        .driver-tooltip,
+        .driver-box {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            /* slate-900 */
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.2);
+        }
     </style>
+
+    <!-- Driver.js CSS (Onboarding Tour) -->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css" />
     @filamentStyles
     @vite('resources/css/app.css')
     @stack('styles')
@@ -72,6 +102,10 @@
 
     @filamentScripts
     @vite('resources/js/app.js')
+
+    <!-- Driver.js (Onboarding Tour) -->
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+
     @stack('scripts')
 </body>
 

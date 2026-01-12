@@ -21,7 +21,8 @@
             </button>
         </form>
     @else
-        <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+        <a id="login-button" href="{{ route('login') }}"
+            class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Login
         </a>
     @endauth
@@ -66,7 +67,14 @@
             </p>
 
             <!-- Alpine.js Countdown & Status -->
-            <div x-data="timer('{{ $settings?->end_at?->toIso8601String() }}', '{{ $settings?->start_at?->toIso8601String() }}', {{ $hasVotingEnded ? 'true' : 'false' }})" x-init="init()" class="w-full max-w-3xl mx-auto mb-12 min-h-[160px]">
+
+            <!-- Floating Help Button -->
+            <button id="start-welcome-tour" onclick="startWelcomeTour()" aria-label="Bantuan Cara Menggunakan"
+                class="fixed z-50 right-5 bottom-6 md:bottom-8 bg-indigo-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm font-semibold transition-transform hover:scale-105 active:scale-95">
+                Bantuan/Cara Pakai
+            </button>
+            <div id="voting-timer" x-data="timer('{{ $settings?->end_at?->toIso8601String() }}', '{{ $settings?->start_at?->toIso8601String() }}', {{ $hasVotingEnded ? 'true' : 'false' }})" x-init="init()"
+                class="w-full max-w-3xl mx-auto mb-12 min-h-[160px]">
 
                 <!-- Status Badge -->
                 <div class="mb-8" x-cloak>
@@ -301,7 +309,7 @@
                 </a>
             @else
                 <div class="space-y-4">
-                    <a href="{{ route('login') }}"
+                    <a id="login-button" href="{{ route('login') }}"
                         class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-full text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 w-full sm:w-auto">
                         Login untuk Memilih
                         <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -363,7 +371,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 @foreach ($candidates as $candidate)
-                    <div
+                    <div @if ($loop->first) id="candidate-card-1" @endif
                         class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full">
                         <!-- Photo -->
                         <div class="aspect-w-3 aspect-h-3 bg-slate-200 overflow-hidden relative h-72">
@@ -401,7 +409,8 @@
                             </p>
 
                             <div class="mt-auto">
-                                <button @click="openModal({{ json_encode($candidate) }})"
+                                <button @if ($loop->first) id="candidate-detail-1" @endif
+                                    @click="openModal({{ json_encode($candidate) }})"
                                     class="w-full inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     Lihat Profil Lengkap
                                 </button>
@@ -698,5 +707,310 @@
                 }
             }
         }
+
+        /* ==========================
+           Driver.js Welcome Tour
+           ========================== */
+        // Dynamic loader for Driver.js (v1.x) and high-contrast textual fallback
+        function loadDriverAssets(cb) {
+            // Check for v1.x namespace (window.driver.js.driver)
+            if (window.driver && window.driver.js) return cb();
+
+            if (window._driverLoading) {
+                window._driverLoadCallbacks = window._driverLoadCallbacks || [];
+                window._driverLoadCallbacks.push(cb);
+                return;
+            }
+
+            window._driverLoading = true;
+            window._driverLoadCallbacks = [cb];
+
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css';
+            document.head.appendChild(css);
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js';
+            script.onload = () => {
+                window._driverLoading = false;
+                (window._driverLoadCallbacks || []).forEach(fn => fn());
+            };
+            script.onerror = () => {
+                window._driverLoading = false;
+                (window._driverLoadCallbacks || []).forEach(fn => fn(new Error('Driver load failed')));
+            };
+            document.body.appendChild(script);
+        }
+
+        function showTextGuide(steps) {
+            // Remove existing fallback if any
+            const existing = document.getElementById('fallback-guide');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'fallback-guide';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.className = 'fixed inset-0 z-[60] flex items-center justify-center p-4';
+
+            const backdrop = document.createElement('div');
+            backdrop.className = 'absolute inset-0 bg-black/60';
+            overlay.appendChild(backdrop);
+
+            const box = document.createElement('div');
+            box.className = 'relative z-10 max-w-2xl w-full bg-white rounded-xl p-6 shadow-2xl text-slate-900';
+            box.style.fontSize = '1.125rem';
+
+            const title = document.createElement('h2');
+            title.className = 'text-xl font-bold mb-3';
+            title.innerText = 'Panduan Singkat';
+            box.appendChild(title);
+
+            const desc = document.createElement('div');
+            desc.id = 'fallback-guide-body';
+            desc.className = 'text-lg text-slate-700 mb-4';
+            box.appendChild(desc);
+
+            const controls = document.createElement('div');
+            controls.className = 'flex items-center justify-between gap-3';
+
+            const prev = document.createElement('button');
+            prev.className = 'px-4 py-2 rounded bg-slate-100 text-slate-900 font-semibold';
+            prev.innerText = 'Kembali';
+
+            const next = document.createElement('button');
+            next.className = 'px-4 py-2 rounded bg-indigo-600 text-white font-semibold';
+            next.innerText = 'Lanjut';
+
+            const close = document.createElement('button');
+            close.className = 'ml-2 px-4 py-2 rounded bg-white border border-slate-200 text-slate-900 font-semibold';
+            close.innerText = 'Selesai';
+
+            controls.appendChild(prev);
+            controls.appendChild(next);
+            controls.appendChild(close);
+
+            box.appendChild(controls);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            let index = 0;
+
+            function render() {
+                const step = steps[index];
+                desc.innerHTML =
+                    `<strong>${step.popover?.title || ''}</strong><p class="mt-2">${step.popover?.description || ''}</p>`;
+                prev.disabled = index === 0;
+                if (index === steps.length - 1) next.innerText = 'Selesai';
+                else next.innerText = 'Lanjut';
+            }
+
+            prev.addEventListener('click', () => {
+                if (index > 0) {
+                    index--;
+                    render();
+                }
+            });
+            next.addEventListener('click', () => {
+                if (index < steps.length - 1) {
+                    index++;
+                    render();
+                } else {
+                    overlay.remove();
+                }
+            });
+            close.addEventListener('click', () => overlay.remove());
+
+            render();
+            next.focus();
+        }
+
+        function startWelcomeTour() {
+            const steps = [];
+
+            if (document.querySelector('#voting-timer')) {
+                steps.push({
+                    element: '#voting-timer',
+                    popover: {
+                        title: 'Waktu Pemilihan',
+                        description: 'Waktu Pemilihan. Pastikan Bapak/Ibu mencoblos sebelum waktu ini habis.',
+                        side: 'bottom',
+                        align: 'center'
+                    }
+                });
+            }
+
+            if (document.querySelector('#login-button')) {
+                steps.push({
+                    element: '#login-button',
+                    popover: {
+                        title: 'Tombol Masuk',
+                        description: 'Tombol Masuk. Klik di sini untuk mulai masuk ke bilik suara.',
+                        side: 'bottom',
+                        align: 'center'
+                    }
+                });
+            }
+
+            if (document.querySelector('#candidate-card-1')) {
+                steps.push({
+                    element: '#candidate-card-1',
+                    popover: {
+                        title: 'Daftar Calon',
+                        description: 'Daftar Calon. Gulir ke bawah untuk melihat semua kandidat yang tersedia.',
+                        side: 'top',
+                        align: 'center'
+                    }
+                });
+            }
+
+            if (document.querySelector('#candidate-detail-1')) {
+                steps.push({
+                    element: '#candidate-detail-1',
+                    popover: {
+                        title: 'Detail Kandidat',
+                        description: 'Detail Kandidat. Klik tombol ini untuk membaca visi & misi selengkapnya.',
+                        side: 'bottom',
+                        align: 'center'
+                    }
+                });
+            }
+
+            if (steps.length === 0) return;
+
+            // Pointer helper functions
+            function createPointer() {
+                let el = document.getElementById('driver-pointer');
+                if (el) return el;
+                el = document.createElement('div');
+                el.id = 'driver-pointer';
+                el.setAttribute('aria-hidden', 'true');
+                el.style.position = 'fixed';
+                el.style.zIndex = '100002'; // Higher than driver popover (usually 100000)
+                el.style.pointerEvents = 'none';
+                el.style.transition = 'all 0.3s ease';
+                el.innerHTML =
+                    `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" class="drop-shadow-xl"><path d="M3 3l18 12-7 1 1 7-12-18z" fill="#4F46E5" stroke="white" stroke-width="1.5"/></svg>`;
+                document.body.appendChild(el);
+                return el;
+            }
+
+            function removePointer() {
+                const p = document.getElementById('driver-pointer');
+                if (p) p.remove();
+            }
+
+            function showPointerFor(element) {
+                if (!element) return removePointer();
+
+                // If element is a string selector, select it
+                const target = typeof element === 'string' ? document.querySelector(element) : element;
+                if (!target) return removePointer();
+
+                const rect = target.getBoundingClientRect();
+                const pointer = createPointer();
+
+                // Calculate position: Point to the element
+                // Default: Point from bottom-right (cursor style)
+                let left = rect.right - 20;
+                let top = rect.bottom - 20;
+
+                // Adjust if off-screen
+                if (left > window.innerWidth - 60) left = rect.left + rect.width / 2;
+                if (top > window.innerHeight - 60) top = rect.top + rect.height / 2;
+
+                pointer.style.left = `${left}px`;
+                pointer.style.top = `${top}px`;
+
+                // Simple bounce
+                pointer.animate([{
+                        transform: 'translate(0, 0)'
+                    },
+                    {
+                        transform: 'translate(-5px, -5px)'
+                    }
+                ], {
+                    duration: 800,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                    easing: 'ease-in-out'
+                });
+            }
+
+            loadDriverAssets(function(err) {
+                if (err || !window.driver?.js?.driver) {
+                    showTextGuide(steps);
+                    return;
+                }
+
+                try {
+                    const driverObj = window.driver.js.driver({
+                        animate: true,
+                        allowClose: true,
+                        overlayClickNext: true,
+                        doneBtnText: 'Selesai',
+                        nextBtnText: 'Lanjut',
+                        prevBtnText: 'Kembali',
+                        popoverClass: 'driver-theme-accessible', // Custom class if needed
+                        steps: steps,
+                        onHighlightStarted: (element) => {
+                            // Driver.js v1 passes the DOM element to this hook
+                            if (element) showPointerFor(element);
+                        },
+                        onDeselected: () => {
+                            removePointer();
+                        },
+                        onDestroyed: () => {
+                            removePointer();
+                        }
+                    });
+
+                    driverObj.drive();
+
+                } catch (e) {
+                    console.error('Driver start failed', e);
+                    showTextGuide(steps);
+                }
+            });
+        }
+
+        // Auto-start welcome tour on first visit
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const seen = localStorage.getItem('welcomeTourSeen');
+                if (!seen) {
+                    // Retry mechanism for CDN load
+                    let attempts = 0;
+                    const interval = setInterval(() => {
+                        if (typeof window.driver !== 'undefined') {
+                            clearInterval(interval);
+                            setTimeout(() => startWelcomeTour(), 500);
+                            localStorage.setItem('welcomeTourSeen', '1');
+                        } else {
+                            attempts++;
+                            // Try calling loadDriverAssets explicitly if not loaded yet
+                            if (attempts === 1) loadDriverAssets(() => {});
+
+                            if (attempts > 30) { // 6s timeout
+                                clearInterval(interval);
+                            }
+                        }
+                    }, 200);
+                }
+            } catch (e) {}
+        });
+
+        // Manual Trigger
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('start-welcome-tour');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    // Reset seen state if user manually clicks, so they can see it again?
+                    // Or just run it.
+                    startWelcomeTour();
+                });
+            }
+        });
     </script>
 @endpush
