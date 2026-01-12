@@ -1,0 +1,50 @@
+name: Deploy to InfinityFree via FTP
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, bcmath, intl, gd, pdo_mysql
+
+      - name: 📦 Install Composer Dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: ⚡ Install NPM & Build Assets
+        run: |
+          npm install
+          npm run build
+
+      - name: 📂 Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # InfinityFree biasanya menggunakan folder 'htdocs' sebagai root publik
+          server-dir: /htdocs/
+          # Exclude file yang tidak perlu di-upload
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/vendor/**
+            **/tests/**
+            **/storage/*.key
+            **/bootstrap/cache/*.php
+            .env
+            .env.example
+            .editorconfig
+            .github/**
