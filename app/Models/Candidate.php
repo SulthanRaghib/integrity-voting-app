@@ -12,6 +12,12 @@ class Candidate extends Model
 
     protected $fillable = [
         'name',
+        'birth_place',
+        'birth_date',
+        'occupation',
+        'address',
+        'education_history',
+        'organization_experience',
         'vision',
         'mission',
         'photo_path',
