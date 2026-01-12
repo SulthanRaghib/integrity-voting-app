@@ -15,11 +15,25 @@ class CandidatesTable
     {
         return $table
             ->columns([
-                ImageColumn::make('photo_path')->label('Photo')->circular(),
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('order_number')->sortable(),
-                TextColumn::make('votes_count')->sortable()->label('Votes'),
-                TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                ImageColumn::make('photo_path')
+                    ->label('Foto')
+                    ->disk('public')
+                    ->circular(),
+                TextColumn::make('name')
+                    ->label('Nama Kandidat')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('order_number')
+                    ->label('Nomor Urut')
+                    ->sortable(),
+                TextColumn::make('votes_count')
+                    ->counts('votes')
+                    ->label('Perolehan Suara')
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
