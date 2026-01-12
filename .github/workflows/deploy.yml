@@ -50,18 +50,10 @@ jobs:
             .github/**
 
       - name: 🚀 Trigger Database Migration
-        # Hanya jalankan jika upload FTP sukses
         if: success()
         run: |
           echo "Triggering migration via URL..."
+          # Menambahkan User-Agent Chrome
+          RESPONSE=$(curl -L -f -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -X GET "https://voting-app.page.gd/deploy/migrate?key=${{ secrets.DEPLOYMENT_KEY }}")
 
-          # Kirim request ke URL aplikasi Anda
-          # Ganti https://nama-domain-anda.com dengan domain asli Anda
-          # curl -L -f akan error jika status code bukan 200 (artinya jika migrasi gagal, pipeline merah)
-
-          RESPONSE=$(curl -L -f -X GET "https://voting-app.page.gd/deploy/migrate?key=${{ secrets.DEPLOYMENT_KEY }}")
-
-          echo "----------------------------------------"
-          echo "OUTPUT DARI SERVER:"
           echo "$RESPONSE"
-          echo "----------------------------------------"
