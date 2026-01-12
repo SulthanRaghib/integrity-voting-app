@@ -3,34 +3,41 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Auth\GoogleAuthService;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleLoginController extends Controller
 {
-    public function redirectToGoogle(): RedirectResponse
+    public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();
     }
 
-    public function handleGoogleCallback(Request $request, GoogleAuthService $googleAuthService): RedirectResponse
+    public function handleGoogleCallback()
     {
-        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
-        $driver = Socialite::driver('google');
-        $socialUser = $driver->stateless()->user();
-
         try {
-            $user = $googleAuthService->authenticateOrFail($socialUser);
-        } catch (\Illuminate\Auth\AuthenticationException $e) {
-            return redirect()->route('filament.admin.auth.login')->withErrors(['email' => $e->getMessage()]);
+            /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+            $driver = Socialite::driver('google');
+            $googleUser = $driver->stateless()->user();
+
+            $user = User::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'name' => $googleUser->getName(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'password' => bcrypt('password'), // Dummy password for OAuth users
+                ]
+            );
+
+            Auth::login($user);
+
+            return redirect()->route('voting.index');
+        } catch (\Exception $e) {
+            Log::error('Google Login Error: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Google Login failed. Please try again.');
         }
-
-        Auth::login($user, true);
-
-        // Redirect to Filament dashboard path (uses config fallback)
-        return redirect()->intended(config('filament.path', '/admin'));
     }
 }
