@@ -22,6 +22,7 @@ class ElectionSetting extends Model
 
     /**
      * Check if the voting period is strictly open.
+     * Now respects Asia/Jakarta timezone (config/app.php).
      */
     public static function isVotingOpen(): bool
     {
@@ -31,6 +32,15 @@ class ElectionSetting extends Model
             return false; // Not configured, so closed.
         }
 
-        return Carbon::now()->between($setting->start_at, $setting->end_at);
+        $now = now(); // Uses config('app.timezone') = Asia/Jakarta
+        return $now->between($setting->start_at, $setting->end_at);
+    }
+
+    /**
+     * Get the current setting instance.
+     */
+    public static function current(): ?self
+    {
+        return self::first();
     }
 }

@@ -22,6 +22,19 @@
         </div>
 
         <div class="relative container mx-auto px-4 py-16 sm:py-24 lg:py-32 flex flex-col items-center text-center">
+            <!-- Flash Messages -->
+            @if (session('error'))
+                <div class="mb-6 max-w-2xl w-full bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <p class="ml-3 text-sm font-medium text-red-800">{{ session('error') }}</p>
+                    </div>
+                </div>
+            @endif
             <span
                 class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600 ring-1 ring-inset ring-indigo-600/10 mb-6">
                 Portal Pemilihan Resmi {{ date('Y') }}
@@ -108,8 +121,11 @@
                 </template>
                 <template x-if="status === 'closed'">
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 max-w-lg mx-auto">
-                        <p class="text-slate-600 font-medium">Periode pemilihan telah berakhir.</p>
-                        <p class="text-sm text-slate-500 mt-2">Hasil akan segera diumumkan.</p>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Pemilihan Telah Berakhir</h3>
+                        <p class="text-slate-600 font-medium mb-3">Total Suara Terkumpul: <span
+                                class="text-indigo-600 font-bold">{{ number_format($totalVotes) }}</span></p>
+                        <p class="text-sm text-slate-500">Hasil akan segera diumumkan. Terima kasih atas partisipasi Anda!
+                        </p>
                     </div>
                 </template>
             </div>
@@ -419,34 +435,44 @@
                         return;
                     }
 
+                    // Parse ISO8601 strings with timezone offset (e.g., 2026-01-12T18:30:00+07:00)
+                    // Browser will correctly interpret the timezone
                     this.endTime = new Date(endAt).getTime();
-                    this.startTime = startAt ? new Date(startAt).getTime() : new Date().getTime();
+                    this.startTime = startAt ? new Date(startAt).getTime() : Date.now();
 
+                    // Immediate check on page load
                     this.updateTimer();
-                    setInterval(() => {
-                        this.updateTimer();
-                    }, 1000);
+
+                    // Only start interval if not already closed
+                    if (this.status !== 'closed') {
+                        setInterval(() => {
+                            this.updateTimer();
+                        }, 1000);
+                    }
                 },
 
                 updateTimer() {
-                    const now = new Date().getTime();
+                    const now = Date.now();
 
+                    // Check if voting hasn't started yet
                     if (this.startTime > now) {
                         this.status = 'upcoming';
                         const distanceToStart = this.startTime - now;
                         this.calculateTime(distanceToStart);
-
-                    } else if (this.endTime > now) {
+                    }
+                    // Check if voting is active
+                    else if (this.endTime > now) {
                         this.status = 'active';
                         const distanceToEnd = this.endTime - now;
                         this.calculateTime(distanceToEnd);
-                    } else {
+                    }
+                    // Voting has ended
+                    else {
                         this.status = 'closed';
                         this.days = '00';
                         this.hours = '00';
                         this.minutes = '00';
                         this.seconds = '00';
-                        return;
                     }
                 },
 

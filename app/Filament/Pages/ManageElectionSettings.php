@@ -40,21 +40,29 @@ class ManageElectionSettings extends Page implements HasForms
     {
         return $schema
             ->schema([
-                Section::make('Election Duration')
-                    ->description('Set the start and end dates for the voting process. Users can only vote within this window.')
+                Section::make('Voting Period Settings')
+                    ->description('Atur tanggal mulai dan berakhirnya proses pemilihan. Pengguna hanya dapat memilih dalam jangka waktu ini.')
                     ->schema([
                         DateTimePicker::make('start_at')
-                            ->label('Start Date & Time')
+                            ->label('Tanggal & Waktu Mulai')
                             ->required()
-                            ->native(false) // Better UX
-                            ->seconds(false),
+                            ->native(false)
+                            ->displayFormat('F j, Y h:i A')
+                            ->seconds(false)
+                            ->hoursStep(1)
+                            ->minutesStep(1)
+                            ->timezone('Asia/Jakarta'),
 
                         DateTimePicker::make('end_at')
-                            ->label('End Date & Time')
+                            ->label('Tanggal & Waktu Berakhir')
                             ->required()
-                            ->after('start_at')
                             ->native(false)
-                            ->seconds(false),
+                            ->displayFormat('F j, Y h:i A')
+                            ->after('start_at')
+                            ->seconds(false)
+                            ->hoursStep(1)
+                            ->minutesStep(1)
+                            ->timezone('Asia/Jakarta'),
                     ])->columns(2),
             ])
             ->statePath('data');
@@ -65,19 +73,33 @@ class ManageElectionSettings extends Page implements HasForms
      */
     public function save(): void
     {
-        $data = $this->form->getState();
+        // Validate the form first
+        $validated = $this->form->getState();
 
-        DB::transaction(function () use ($data) {
-            // Update or Create the single record
-            $settings = ElectionSetting::firstOrNew();
-            $settings->fill($data);
-            $settings->save();
-        });
+        try {
+            DB::transaction(function () use ($validated) {
+                // Update or Create the single record
+                $settings = ElectionSetting::firstOrNew();
+                $settings->start_at = $validated['start_at'];
+                $settings->end_at = $validated['end_at'];
+                $settings->save();
+            });
 
-        Notification::make()
-            ->title('Settings Saved')
-            ->success()
-            ->send();
+            // Refresh the form with saved data
+            $this->form->fill(ElectionSetting::first()->attributesToArray());
+
+            Notification::make()
+                ->title('Settings Saved Successfully')
+                ->body('Voting period has been updated.')
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error Saving Settings')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     /**
