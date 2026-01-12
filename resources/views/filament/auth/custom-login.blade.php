@@ -67,9 +67,9 @@
     </style>
 
     <div
-        class="max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-slate-900/5 flex flex-col md:flex-row">
+        class="max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-slate-900/5 flex flex-col-reverse md:flex-row">
 
-        <!-- Left Side: Login Form -->
+        <!-- Left Side (Mobile Bottom): Login Form -->
         <div class="w-full md:w-1/2 p-8 sm:p-12">
             <div class="mb-8">
                 <div class="flex items-center gap-2 mb-4">
@@ -184,9 +184,9 @@
             </form>
         </div>
 
-        <!-- Right Side: Voter Info -->
+        <!-- Right Side (Mobile Top): Voter Info -->
         <div
-            class="w-full md:w-1/2 bg-gradient-to-br from-indigo-50 to-blue-50 p-8 sm:p-12 border-t md:border-t-0 md:border-l border-slate-200 flex flex-col justify-center">
+            class="w-full md:w-1/2 bg-gradient-to-br from-indigo-50 to-blue-50 p-8 sm:p-12 border-b md:border-b-0 md:border-l border-slate-200 flex flex-col justify-center">
 
             <div class="mb-8">
                 <div
