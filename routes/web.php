@@ -34,27 +34,14 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // CI/CD Akses terminal dengan FTP
-Route::get('/deploy/migrate', function (Request $request) {
-    // 1. Validasi Keamanan (Wajib!)
-    // Ganti 'DEPLOYMENT_KEY' dengan nama variabel di .env Anda
-    $secretKey = env('DEPLOYMENT_KEY');
-
-    if (!$secretKey || $request->query('key') !== $secretKey) {
-        abort(403, 'Unauthorized action.');
-    }
-
+Route::get('/run-migration', function () {
     try {
-        // 2. Jalankan Migrasi
-        // --force wajib digunakan karena di hosting environment-nya biasanya 'production'
+        // Menjalankan migrasi dengan flag --force (wajib untuk production)
         Artisan::call('migrate', ['--force' => true]);
 
-        // 3. Ambil Output Terminalnya
         $output = Artisan::output();
-
-        // 4. Return Output agar bisa dibaca oleh GitHub Actions
-        return response("Migration Status:\n" . $output, 200)
-            ->header('Content-Type', 'text/plain');
+        return "<h1>Migrasi Sukses!</h1><pre>$output</pre>";
     } catch (\Exception $e) {
-        return response("Migration Failed: " . $e->getMessage(), 500);
+        return "<h1>Migrasi Gagal</h1><p>" . $e->getMessage() . "</p>";
     }
 });
