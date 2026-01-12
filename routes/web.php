@@ -15,4 +15,10 @@ Route::get('/admin/auth/google/callback', [GoogleLoginController::class, 'handle
 Route::middleware(['auth'])->group(function () {
     Route::get('/bilik-suara', [VoteController::class, 'index'])->name('voting.index');
     Route::post('/vote', [VoteController::class, 'store'])->name('vote.store');
+    Route::post('/logout', function () {
+        Illuminate\Support\Facades\Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+        return redirect()->route('welcome');
+    })->name('logout');
 });

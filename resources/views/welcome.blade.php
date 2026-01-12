@@ -180,53 +180,213 @@
         </div>
     </div>
 
-    <!-- Candidate Grid -->
-    <div class="bg-white py-16 sm:py-24">
+    <!-- Candidate Grid with Alpine.js Modal -->
+    <div x-data="candidateModal()" class="bg-white py-16 sm:py-24">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="text-3xl font-bold tracking-tight text-slate-900">Kenali Para Kandidat</h2>
-                <p class="mt-4 text-lg text-slate-600">Pelajari profil mereka sebelum memberikan suara aman Anda.</p>
+                <p class="mt-4 text-lg text-slate-600">Pelajari rekam jejak, visi, dan misi mereka secara mendalam.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 @foreach ($candidates as $candidate)
                     <div
-                        class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col">
-                        <div class="aspect-w-3 aspect-h-2 bg-slate-200 overflow-hidden relative h-64">
+                        class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full">
+                        <!-- Photo -->
+                        <div class="aspect-w-3 aspect-h-3 bg-slate-200 overflow-hidden relative h-72">
                             @if ($candidate->photo_path)
                                 <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($candidate->photo_path) }}"
                                     alt="{{ $candidate->name }}"
-                                    class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                                    class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
                             @else
                                 <div class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                                    <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
                                         </path>
                                     </svg>
                                 </div>
                             @endif
+                            <!-- Overlay Gradient -->
                             <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             </div>
                         </div>
-                        <div class="p-6 flex-1 flex flex-col items-center text-center">
-                            <h3 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                                {{ $candidate->name }}</h3>
-                            <p class="text-sm text-slate-500 mt-1">Kandidat #{{ $candidate->order_number }}</p>
-                            <div class="mt-6">
-                                @auth
-                                    <a href="{{ route('voting.index') }}"
-                                        class="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-                                        Lihat Detail &rarr;
-                                    </a>
-                                @else
-                                    <span class="text-sm text-slate-400">Login untuk melihat detail</span>
-                                @endauth
+
+                        <!-- Card Content -->
+                        <div class="p-6 flex-1 flex flex-col text-center">
+                            <span
+                                class="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full mb-3 mx-auto">
+                                No. Urut {{ $candidate->order_number }}
+                            </span>
+                            <h3
+                                class="text-xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                                {{ $candidate->name }}
+                            </h3>
+                            <p class="text-sm text-slate-500 mb-4 line-clamp-3">
+                                {!! strip_tags($candidate->vision) !!}
+                            </p>
+
+                            <div class="mt-auto">
+                                <button @click="openModal({{ json_encode($candidate) }})"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-indigo-600 text-sm font-medium rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                    Lihat Profil Lengkap
+                                </button>
                             </div>
                         </div>
                     </div>
                 @endforeach
+            </div>
+        </div>
+
+        <!-- Full Screen Modal Overlay -->
+        <div x-show="isOpen" class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true"
+            x-cloak>
+            <!-- Backdrop -->
+            <div x-show="isOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"></div>
+
+            <!-- Modal Panel -->
+            <div class="fixed inset-0 z-10 overflow-y-auto">
+                <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                    <div x-show="isOpen" x-transition:enter="ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave="ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        @click.away="closeModal()"
+                        class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl max-h-[90vh] flex flex-col">
+
+                        <!-- Modal Header (Sticky) -->
+                        <div class="bg-indigo-600 px-4 py-4 sm:px-6 flex justify-between items-center sticky top-0 z-20">
+                            <h3 class="text-lg font-semibold leading-6 text-white" id="modal-title">
+                                Profil Kandidat
+                            </h3>
+                            <button @click="closeModal()" class="text-indigo-200 hover:text-white transition-colors">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body (Scrollable) -->
+                        <div class="px-4 py-6 sm:px-8 overflow-y-auto custom-scrollbar">
+                            <template x-if="activeCandidate">
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    <!-- Left Column: Photo & Personal Info -->
+                                    <div class="lg:col-span-1 space-y-6">
+                                        <div
+                                            class="aspect-w-3 aspect-h-4 rounded-xl overflow-hidden shadow-lg border border-slate-100">
+                                            <template x-if="activeCandidate.photo_path">
+                                                <img :src="'/storage/' + activeCandidate.photo_path"
+                                                    class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!activeCandidate.photo_path">
+                                                <div
+                                                    class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                                                    No Photo</div>
+                                            </template>
+                                        </div>
+
+                                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            <h4 class="font-bold text-slate-900 text-lg mb-1"
+                                                x-text="activeCandidate.name"></h4>
+                                            <p class="text-indigo-600 font-medium text-sm mb-4"
+                                                x-text="'Kandidat No. ' + activeCandidate.order_number"></p>
+
+                                            <dl class="space-y-3 text-sm">
+                                                <div x-show="activeCandidate.birth_place || activeCandidate.birth_date">
+                                                    <dt class="text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                                        Tempat, Tanggal Lahir</dt>
+                                                    <dd class="text-slate-800 mt-0.5">
+                                                        <span x-text="activeCandidate.birth_place"></span>
+                                                        <span
+                                                            x-show="activeCandidate.birth_place && activeCandidate.birth_date">,
+                                                        </span>
+                                                        <span x-text="formatDate(activeCandidate.birth_date)"></span>
+                                                    </dd>
+                                                </div>
+
+                                                <div x-show="activeCandidate.occupation">
+                                                    <dt class="text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                                        Pekerjaan</dt>
+                                                    <dd class="text-slate-800 mt-0.5" x-text="activeCandidate.occupation">
+                                                    </dd>
+                                                </div>
+                                            </dl>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Column: Details Tabs/Sections -->
+                                    <div class="lg:col-span-2 space-y-8">
+                                        <!-- Visi & Misi -->
+                                        <section>
+                                            <div class="flex items-center gap-2 mb-4">
+                                                <div class="h-8 w-1 bg-indigo-600 rounded-full"></div>
+                                                <h4 class="text-2xl font-bold text-slate-900">Visi & Misi</h4>
+                                            </div>
+                                            <div class="prose prose-indigo prose-sm max-w-none bg-white">
+                                                <div class="mb-4">
+                                                    <strong class="text-indigo-700 block mb-1">Visi</strong>
+                                                    <div x-html="activeCandidate.vision" class="text-slate-600"></div>
+                                                </div>
+                                                <div>
+                                                    <strong class="text-indigo-700 block mb-1">Misi</strong>
+                                                    <div x-html="activeCandidate.mission" class="text-slate-600"></div>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        <hr class="border-slate-100">
+
+                                        <!-- Education -->
+                                        <section x-show="activeCandidate.education_history">
+                                            <div class="flex items-center gap-2 mb-4">
+                                                <div class="h-8 w-1 bg-pink-500 rounded-full"></div>
+                                                <h4 class="text-xl font-bold text-slate-900">Riwayat Pendidikan</h4>
+                                            </div>
+                                            <div class="prose prose-sm max-w-none text-slate-600"
+                                                x-html="activeCandidate.education_history"></div>
+                                        </section>
+
+                                        <!-- Organization -->
+                                        <section x-show="activeCandidate.organization_experience">
+                                            <div class="flex items-center gap-2 mb-4">
+                                                <div class="h-8 w-1 bg-emerald-500 rounded-full"></div>
+                                                <h4 class="text-xl font-bold text-slate-900">Pengalaman Organisasi</h4>
+                                            </div>
+                                            <div class="prose prose-sm max-w-none text-slate-600"
+                                                x-html="activeCandidate.organization_experience"></div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-100">
+                            @auth
+                                <a href="{{ route('voting.index') }}"
+                                    class="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">
+                                    Vote Kandidat Ini
+                                </a>
+                            @else
+                                <a href="{{ route('filament.admin.auth.login') }}"
+                                    class="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">
+                                    Login untuk Memilih
+                                </a>
+                            @endauth
+                            <button type="button" @click="closeModal()"
+                                class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -305,6 +465,37 @@
                         '0');
                     this.minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
                     this.seconds = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                }
+            }
+        }
+
+        function candidateModal() {
+            return {
+                isOpen: false,
+                activeCandidate: null,
+
+                openModal(candidate) {
+                    this.activeCandidate = candidate;
+                    this.isOpen = true;
+                    document.body.classList.add('overflow-hidden');
+                },
+
+                closeModal() {
+                    this.isOpen = false;
+                    setTimeout(() => {
+                        this.activeCandidate = null;
+                    }, 300);
+                    document.body.classList.remove('overflow-hidden');
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const options = {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    };
+                    return new Date(dateString).toLocaleDateString('id-ID', options);
                 }
             }
         }

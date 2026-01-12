@@ -20,7 +20,7 @@ class WelcomeController extends Controller
 
         // Stats
         $totalVotes = Vote::count();
-        $candidates = Candidate::orderBy('order_number')->get(['id', 'name', 'photo_path']);
+        $candidates = Candidate::orderBy('order_number')->get();
 
         // Voting Status check helpers for the view
         $isVotingOpen = $settings ? \App\Models\ElectionSetting::isVotingOpen() : false;

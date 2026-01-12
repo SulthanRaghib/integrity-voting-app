@@ -13,6 +13,21 @@
                 {{ substr(Auth::user()->name, 0, 2) }}
             </div>
         @endif
+
+        <div class="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        <form action="{{ route('logout') }}" method="POST" class="flex items-center">
+            @csrf
+            <button type="submit"
+                class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors flex items-center gap-1.5 px-2 py-1 hover:bg-red-50 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                </svg>
+                <span class="hidden sm:inline">Keluar</span>
+            </button>
+        </form>
     </div>
 @endsection
 
@@ -112,60 +127,213 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                         @foreach ($candidates as $candidate)
                             <div
-                                class="relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 overflow-hidden flex flex-col group {{ $loop->index == 0 ? 'ring-2 ring-transparent' : '' }}">
-                                <!-- Added ring structure possibility -->
-
-                                <!-- Selection Indicator (Only Visual in this state) -->
-                                <div
-                                    class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span
-                                        class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Kandidat
-                                        #{{ $candidate->order_number }}</span>
-                                </div>
-
-                                <div class="aspect-w-4 aspect-h-3 bg-slate-100 h-64 overflow-hidden">
+                                class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full">
+                                <!-- Photo -->
+                                <div class="aspect-w-3 aspect-h-3 bg-slate-200 overflow-hidden relative h-72">
                                     @if ($candidate->photo_path)
                                         <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($candidate->photo_path) }}"
                                             alt="{{ $candidate->name }}"
-                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                            class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
                                     @else
                                         <div
                                             class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
                                             <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
                                                 </path>
                                             </svg>
                                         </div>
                                     @endif
+                                    <!-- Overlay Gradient -->
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    </div>
                                 </div>
 
-                                <div class="p-6 flex-1 flex flex-col">
-                                    <h3 class="text-xl font-bold text-slate-900 mb-2">{{ $candidate->name }}</h3>
+                                <!-- Card Content -->
+                                <div class="p-6 flex-1 flex flex-col text-center">
+                                    <span
+                                        class="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full mb-3 mx-auto">
+                                        No. Urut {{ $candidate->order_number }}
+                                    </span>
+                                    <h3
+                                        class="text-xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                                        {{ $candidate->name }}
+                                    </h3>
 
-                                    <div class="flex-grow">
-                                        @if ($candidate->vision)
-                                            <p class="text-slate-600 text-sm line-clamp-3 mb-4">
-                                                {{ $candidate->vision }}</p>
-                                        @else
-                                            <p class="text-slate-400 text-sm italic mb-4">Tidak ada visi misi yang
-                                                diberikan.
-                                            </p>
-                                        @endif
+                                    <div class="mt-auto space-y-3">
+                                        <button @click="openProfileModal({{ json_encode($candidate) }})"
+                                            class="w-full inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                            Lihat Profil
+                                        </button>
+
+                                        <button
+                                            @click="openConfirmModal({{ $candidate->id }}, '{{ addslashes($candidate->name) }}')"
+                                            class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm">
+                                            Pilih Kandidat
+                                        </button>
                                     </div>
-
-                                    <button type="button"
-                                        @click="openConfirmModal({{ $candidate->id }}, '{{ addslashes($candidate->name) }}')"
-                                        class="w-full mt-4 py-3 px-4 bg-white border-2 border-indigo-600 text-indigo-700 font-bold rounded-xl hover:bg-indigo-600 hover:text-white transition-colors flex items-center justify-center gap-2 group-hover:shadow-md">
-                                        Pilih Kandidat
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    </button>
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+
+                    <!-- Profile Modal -->
+                    <div x-show="isProfileOpen" class="relative z-[100]" aria-labelledby="modal-title" role="dialog"
+                        aria-modal="true" x-cloak>
+                        <!-- Backdrop -->
+                        <div x-show="isProfileOpen" x-transition:enter="ease-out duration-300"
+                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                            x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"></div>
+
+                        <!-- Modal Panel -->
+                        <div class="fixed inset-0 z-10 overflow-y-auto">
+                            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                                <div x-show="isProfileOpen" x-transition:enter="ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave="ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    @click.away="closeProfileModal()"
+                                    class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl max-h-[90vh] flex flex-col">
+
+                                    <!-- Modal Header (Sticky) -->
+                                    <div
+                                        class="bg-indigo-600 px-4 py-4 sm:px-6 flex justify-between items-center sticky top-0 z-20">
+                                        <h3 class="text-lg font-semibold leading-6 text-white" id="modal-title">
+                                            Profil Kandidat
+                                        </h3>
+                                        <button @click="closeProfileModal()"
+                                            class="text-indigo-200 hover:text-white transition-colors">
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Modal Body (Scrollable) -->
+                                    <div class="px-4 py-6 sm:px-8 overflow-y-auto custom-scrollbar">
+                                        <template x-if="activeCandidate">
+                                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                                <!-- Left Column: Photo & Personal Info -->
+                                                <div class="lg:col-span-1 space-y-6">
+                                                    <div
+                                                        class="aspect-w-3 aspect-h-4 rounded-xl overflow-hidden shadow-lg border border-slate-100">
+                                                        <template x-if="activeCandidate.photo_path">
+                                                            <img :src="'/storage/' + activeCandidate.photo_path"
+                                                                class="w-full h-full object-cover">
+                                                        </template>
+                                                        <template x-if="!activeCandidate.photo_path">
+                                                            <div
+                                                                class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+                                                                No Photo</div>
+                                                        </template>
+                                                    </div>
+
+                                                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                        <h4 class="font-bold text-slate-900 text-lg mb-1"
+                                                            x-text="activeCandidate.name"></h4>
+                                                        <p class="text-indigo-600 font-medium text-sm mb-4"
+                                                            x-text="'Kandidat No. ' + activeCandidate.order_number"></p>
+
+                                                        <dl class="space-y-3 text-sm">
+                                                            <div
+                                                                x-show="activeCandidate.birth_place || activeCandidate.birth_date">
+                                                                <dt
+                                                                    class="text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                                                    Tempat, Tanggal Lahir</dt>
+                                                                <dd class="text-slate-800 mt-0.5">
+                                                                    <span x-text="activeCandidate.birth_place"></span>
+                                                                    <span
+                                                                        x-show="activeCandidate.birth_place && activeCandidate.birth_date">,
+                                                                    </span>
+                                                                    <span
+                                                                        x-text="formatDate(activeCandidate.birth_date)"></span>
+                                                                </dd>
+                                                            </div>
+
+                                                            <div x-show="activeCandidate.occupation">
+                                                                <dt
+                                                                    class="text-slate-500 text-xs uppercase font-bold tracking-wider">
+                                                                    Pekerjaan</dt>
+                                                                <dd class="text-slate-800 mt-0.5"
+                                                                    x-text="activeCandidate.occupation"></dd>
+                                                            </div>
+                                                        </dl>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Right Column: Details Tabs/Sections -->
+                                                <div class="lg:col-span-2 space-y-8">
+                                                    <!-- Visi & Misi -->
+                                                    <section>
+                                                        <div class="flex items-center gap-2 mb-4">
+                                                            <div class="h-8 w-1 bg-indigo-600 rounded-full"></div>
+                                                            <h4 class="text-2xl font-bold text-slate-900">Visi & Misi</h4>
+                                                        </div>
+                                                        <div class="prose prose-indigo prose-sm max-w-none bg-white">
+                                                            <div class="mb-4">
+                                                                <strong class="text-indigo-700 block mb-1">Visi</strong>
+                                                                <div x-html="activeCandidate.vision"
+                                                                    class="text-slate-600"></div>
+                                                            </div>
+                                                            <div>
+                                                                <strong class="text-indigo-700 block mb-1">Misi</strong>
+                                                                <div x-html="activeCandidate.mission"
+                                                                    class="text-slate-600"></div>
+                                                            </div>
+                                                        </div>
+                                                    </section>
+
+                                                    <hr class="border-slate-100">
+
+                                                    <!-- Education -->
+                                                    <section x-show="activeCandidate.education_history">
+                                                        <div class="flex items-center gap-2 mb-4">
+                                                            <div class="h-8 w-1 bg-pink-500 rounded-full"></div>
+                                                            <h4 class="text-xl font-bold text-slate-900">Riwayat Pendidikan
+                                                            </h4>
+                                                        </div>
+                                                        <div class="prose prose-sm max-w-none text-slate-600"
+                                                            x-html="activeCandidate.education_history"></div>
+                                                    </section>
+
+                                                    <!-- Organization -->
+                                                    <section x-show="activeCandidate.organization_experience">
+                                                        <div class="flex items-center gap-2 mb-4">
+                                                            <div class="h-8 w-1 bg-emerald-500 rounded-full"></div>
+                                                            <h4 class="text-xl font-bold text-slate-900">Pengalaman
+                                                                Organisasi</h4>
+                                                        </div>
+                                                        <div class="prose prose-sm max-w-none text-slate-600"
+                                                            x-html="activeCandidate.organization_experience"></div>
+                                                    </section>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Modal Footer -->
+                                    <div
+                                        class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-gray-100">
+                                        <button type="button"
+                                            @click="closeProfileModal(); openConfirmModal(activeCandidate.id, activeCandidate.name)"
+                                            class="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors">
+                                            Pilih Kandidat Ini
+                                        </button>
+                                        <button type="button" @click="closeProfileModal()"
+                                            class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-colors">
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Confirmation Modal -->
@@ -241,8 +409,10 @@
         function votingApp() {
             return {
                 isModalOpen: false,
+                isProfileOpen: false,
                 selectedCandidateId: null,
                 selectedCandidateName: '',
+                activeCandidate: null,
                 deviceHash: '',
 
                 initData() {
@@ -263,6 +433,20 @@
                     return hash;
                 },
 
+                openProfileModal(candidate) {
+                    this.activeCandidate = candidate;
+                    this.isProfileOpen = true;
+                    document.body.classList.add('overflow-hidden');
+                },
+
+                closeProfileModal() {
+                    this.isProfileOpen = false;
+                    setTimeout(() => {
+                        this.activeCandidate = null;
+                    }, 300);
+                    document.body.classList.remove('overflow-hidden');
+                },
+
                 openConfirmModal(id, name) {
                     this.selectedCandidateId = id;
                     this.selectedCandidateName = name;
@@ -273,6 +457,16 @@
                     this.isModalOpen = false;
                     this.selectedCandidateId = null;
                     this.selectedCandidateName = '';
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const options = {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    };
+                    return new Date(dateString).toLocaleDateString('id-ID', options);
                 }
             }
         }
