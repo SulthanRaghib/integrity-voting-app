@@ -45,3 +45,10 @@ Route::get('/run-migration', function () {
         return "<h1>Migrasi Gagal</h1><p>" . $e->getMessage() . "</p>";
     }
 });
+
+Route::get('/clear-cache', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    return 'Cache Cleared';
+});
