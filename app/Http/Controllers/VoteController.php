@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Models\ElectionSetting;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,9 @@ class VoteController extends Controller
             $hasVoted = Vote::where('user_id', Auth::id())->exists();
         }
 
+        // Optional: Pass 'isVotingOpen' to view if you want to disable UI based on time
+        // $isVotingOpen = ElectionSetting::isVotingOpen();
+
         $candidates = Candidate::orderBy('order_number')->get();
 
         return view('voting.index', compact('candidates', 'hasVoted'));
@@ -25,6 +29,11 @@ class VoteController extends Controller
 
     public function store(Request $request)
     {
+        // 0. Temporal Integrity Check: Is Voting Open?
+        if (! ElectionSetting::isVotingOpen()) {
+            return redirect()->back()->withErrors(['error' => 'Voting Period is currently closed. You cannot cast a vote at this time.']);
+        }
+
         $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
             'device_hash' => 'required|string',
