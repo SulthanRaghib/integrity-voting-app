@@ -48,3 +48,20 @@ jobs:
             .env.example
             .editorconfig
             .github/**
+
+      - name: 🚀 Trigger Database Migration
+        # Hanya jalankan jika upload FTP sukses
+        if: success()
+        run: |
+          echo "Triggering migration via URL..."
+
+          # Kirim request ke URL aplikasi Anda
+          # Ganti https://nama-domain-anda.com dengan domain asli Anda
+          # curl -L -f akan error jika status code bukan 200 (artinya jika migrasi gagal, pipeline merah)
+
+          RESPONSE=$(curl -L -f -X GET "https://voting-app.page.gd/deploy/migrate?key=${{ secrets.DEPLOYMENT_KEY }}")
+
+          echo "----------------------------------------"
+          echo "OUTPUT DARI SERVER:"
+          echo "$RESPONSE"
+          echo "----------------------------------------"
