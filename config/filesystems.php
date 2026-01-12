@@ -40,7 +40,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => public_path('app/public'),
+            'root' => public_path('storage'),
             'url' => rtrim(env('APP_URL'), '/') . '/storage',
             'visibility' => 'public',
             'throw' => false,
