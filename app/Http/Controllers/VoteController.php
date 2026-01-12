@@ -31,7 +31,8 @@ class VoteController extends Controller
     {
         // 0. Temporal Integrity Check: Is Voting Open?
         if (! ElectionSetting::isVotingOpen()) {
-            return redirect()->back()->withErrors(['error' => 'Voting Period is currently closed. You cannot cast a vote at this time.']);
+            // Graceful UX: Redirect to welcome page with flash message
+            return redirect()->route('welcome')->with('error', 'Periode pemilihan telah berakhir. Anda tidak dapat memberikan suara saat ini.');
         }
 
         $request->validate([
@@ -43,12 +44,12 @@ class VoteController extends Controller
 
         // Integrity Check 1: User has voted check
         if (Vote::where('user_id', $user->id)->exists()) {
-            return redirect()->back()->withErrors(['error' => 'Security Alert: You have already cast your vote.']);
+            return redirect()->back()->withErrors(['error' => 'Peringatan Keamanan: Anda sudah memberikan suara.']);
         }
 
         // Integrity Check 2: Device has voted check
         if (Vote::where('device_hash', $request->device_hash)->exists()) {
-            return redirect()->back()->withErrors(['error' => 'Security Alert: This device has already been used to vote.']);
+            return redirect()->back()->withErrors(['error' => 'Peringatan Keamanan: Anda sudah memberikan suara.']);
         }
 
         try {
