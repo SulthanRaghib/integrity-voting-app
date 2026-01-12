@@ -3,8 +3,23 @@
 @section('navbar-actions')
     @auth
         <a href="{{ route('voting.index') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
-            Dasbor
+            Dasboard Voting
         </a>
+
+        <div class="h-5 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        <form action="{{ route('logout') }}" method="POST" class="flex items-center">
+            @csrf
+            <button type="submit"
+                class="text-sm font-medium text-red-600 hover:text-red-800 transition-colors flex items-center gap-1.5 px-2 py-1 hover:bg-red-50 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                </svg>
+                <span class="hidden sm:inline">Keluar</span>
+            </button>
+        </form>
     @else
         <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Login
@@ -51,7 +66,7 @@
             </p>
 
             <!-- Alpine.js Countdown & Status -->
-            <div x-data="timer('{{ $settings?->end_at?->toIso8601String() }}', '{{ $settings?->start_at?->toIso8601String() }}')" x-init="init()" class="w-full max-w-3xl mx-auto mb-12 min-h-[160px]">
+            <div x-data="timer('{{ $settings?->end_at?->toIso8601String() }}', '{{ $settings?->start_at?->toIso8601String() }}', {{ $hasVotingEnded ? 'true' : 'false' }})" x-init="init()" class="w-full max-w-3xl mx-auto mb-12 min-h-[160px]">
 
                 <!-- Status Badge -->
                 <div class="mb-8" x-cloak>
@@ -92,39 +107,181 @@
 
                 <!-- Countdown Cards -->
                 <template x-if="status !== 'closed' && status !== 'loading'">
-                    <div class="grid grid-cols-4 gap-4 sm:gap-6 max-w-lg mx-auto">
-                        <div
-                            class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
-                            <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
-                                x-text="days">00</span>
-                            <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Hari</span>
+                    <div>
+                        <div class="grid grid-cols-4 gap-4 sm:gap-6 max-w-lg mx-auto">
+                            <div
+                                class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
+                                <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
+                                    x-text="days">00</span>
+                                <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Hari</span>
+                            </div>
+                            <div
+                                class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
+                                <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
+                                    x-text="hours">00</span>
+                                <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Jam</span>
+                            </div>
+                            <div
+                                class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
+                                <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
+                                    x-text="minutes">00</span>
+                                <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Menit</span>
+                            </div>
+                            <div
+                                class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
+                                <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
+                                    x-text="seconds">00</span>
+                                <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Detik</span>
+                            </div>
                         </div>
-                        <div
-                            class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
-                            <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
-                                x-text="hours">00</span>
-                            <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Jam</span>
-                        </div>
-                        <div
-                            class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
-                            <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
-                                x-text="minutes">00</span>
-                            <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Menit</span>
-                        </div>
-                        <div
-                            class="flex flex-col p-4 bg-white rounded-xl shadow-lg border border-slate-100 transform hover:scale-105 transition-transform duration-200">
-                            <span class="text-2xl sm:text-4xl font-bold text-indigo-600 tabular-nums"
-                                x-text="seconds">00</span>
-                            <span class="text-xs uppercase font-semibold text-slate-400 mt-1">Detik</span>
+                        <p class="text-sm text-slate-500 mt-6 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Hasil pemilihan akan ditampilkan otomatis setelah periode berakhir.
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Calculating Results (Transition State) -->
+                <template x-if="isCalculating">
+                    <div class="bg-white border-2 border-indigo-200 rounded-xl p-8 max-w-lg mx-auto shadow-lg">
+                        <div class="flex flex-col items-center">
+                            <svg class="animate-spin h-12 w-12 text-indigo-600 mb-4" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Menghitung Hasil...</h3>
+                            <p class="text-sm text-slate-600">Mohon tunggu sebentar</p>
                         </div>
                     </div>
                 </template>
-                <template x-if="status === 'closed'">
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 max-w-lg mx-auto">
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">Pemilihan Telah Berakhir</h3>
-                        <p class="text-slate-600 font-medium mb-3">Total Suara Terkumpul: <span
-                                class="text-indigo-600 font-bold">{{ number_format($totalVotes) }}</span></p>
-                        <p class="text-sm text-slate-500">Hasil akan segera diumumkan. Terima kasih atas partisipasi Anda!
+
+                <!-- Election Results Leaderboard (When Closed) -->
+                <template x-if="status === 'closed' && !isCalculating">
+                    <div class="max-w-4xl mx-auto">
+                        <div
+                            class="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
+                            <div class="flex items-center justify-center gap-3 mb-4">
+                                <svg class="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                                    </path>
+                                </svg>
+                                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Hasil Pemilihan</h2>
+                            </div>
+                            <p class="text-center text-slate-700 mb-2">Pemilihan telah berakhir</p>
+                            <p class="text-center text-lg font-semibold text-indigo-600">
+                                Total Suara Terkumpul: <span class="text-2xl">{{ number_format($totalVotes) }}</span>
+                            </p>
+                        </div>
+
+                        @if ($hasVotingEnded && $totalVotes > 0)
+                            <!-- Leaderboard -->
+                            <div class="space-y-3 sm:space-y-4">
+                                @foreach ($candidates as $candidate)
+                                    <div
+                                        class="bg-white rounded-xl shadow-lg border-2 {{ $candidate->rank === 1 ? 'border-yellow-400 ring-2 sm:ring-4 ring-yellow-100' : 'border-slate-200' }} p-4 sm:p-6 transition-all hover:shadow-xl">
+                                        <div class="flex items-start gap-3 sm:gap-4">
+                                            <!-- Rank Badge -->
+                                            <div class="flex-shrink-0">
+                                                @if ($candidate->rank === 1)
+                                                    <div class="relative">
+                                                        <div
+                                                            class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg">
+                                                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-yellow-400"
+                                                                fill="currentColor" viewBox="0 0 20 20">
+                                                                <path
+                                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                                                                </path>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-100 flex items-center justify-center text-xl sm:text-2xl font-bold text-slate-600">
+                                                        {{ $candidate->rank }}
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Candidate Info -->
+                                            <div class="flex-1 min-w-0">
+                                                <!-- Header with photo, name, and badge -->
+                                                <div class="flex items-start gap-2 sm:gap-3 mb-3">
+                                                    @if ($candidate->photo_path)
+                                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($candidate->photo_path) }}"
+                                                            alt="{{ $candidate->name }}"
+                                                            class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-indigo-200 flex-shrink-0">
+                                                    @else
+                                                        <div
+                                                            class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                                                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-400"
+                                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                                </path>
+                                                            </svg>
+                                                        </div>
+                                                    @endif
+
+                                                    <div class="flex-1 min-w-0">
+                                                        <h3
+                                                            class="font-bold text-base sm:text-lg text-slate-900 {{ $candidate->rank === 1 ? 'text-yellow-700' : '' }} truncate">
+                                                            {{ $candidate->name }}
+                                                        </h3>
+                                                        <p class="text-xs text-slate-500">Kandidat No.
+                                                            {{ $candidate->order_number }}</p>
+
+                                                        @if ($candidate->rank === 1)
+                                                            <span
+                                                                class="inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 mt-1">
+                                                                🏆 PEMENANG
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <!-- Progress Bar -->
+                                                <div class="mb-2 sm:mb-3">
+                                                    <div class="flex items-center justify-between text-xs sm:text-sm mb-1">
+                                                        <span class="font-semibold text-slate-700">Perolehan Suara</span>
+                                                        <span
+                                                            class="font-bold {{ $candidate->rank === 1 ? 'text-yellow-600' : 'text-indigo-600' }}">
+                                                            {{ number_format($candidate->votes_count) }} Suara
+                                                            ({{ $candidate->vote_percentage }}%)
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        class="w-full bg-slate-200 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                                                        <div class="{{ $candidate->rank === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-indigo-500 to-blue-500' }} h-full rounded-full transition-all duration-1000 ease-out"
+                                                            style="width: {{ $candidate->vote_percentage }}%"></div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Vision Preview -->
+                                                <p class="text-xs sm:text-sm text-slate-600 line-clamp-2">
+                                                    {!! strip_tags($candidate->vision) !!}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+                                <p class="text-slate-600">Tidak ada data hasil pemilihan.</p>
+                            </div>
+                        @endif
+
+                        <p class="text-center text-sm text-slate-500 mt-8">
+                            Terima kasih atas partisipasi Anda dalam proses demokrasi ini! 🗳️
                         </p>
                     </div>
                 </template>
@@ -135,7 +292,8 @@
                 <a href="{{ route('voting.index') }}"
                     class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-full text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
                     Menuju Dashboard Voting
-                    <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                        fill="currentColor">
                         <path fill-rule="evenodd"
                             d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
                             clip-rule="evenodd" />
@@ -419,7 +577,7 @@
 
 @push('scripts')
     <script>
-        function timer(endAt, startAt) {
+        function timer(endAt, startAt, hasVotingEnded) {
             return {
                 days: '00',
                 hours: '00',
@@ -428,6 +586,8 @@
                 status: 'loading', // 'upcoming', 'active', 'closed'
                 endTime: null,
                 startTime: null,
+                isCalculating: false,
+                alreadyEnded: hasVotingEnded, // Flag from backend to prevent infinite reload
 
                 init() {
                     if (!endAt) {
@@ -466,14 +626,28 @@
                         const distanceToEnd = this.endTime - now;
                         this.calculateTime(distanceToEnd);
                     }
-                    // Voting has ended
+                    // Voting has just ended
                     else {
+                        // Only trigger reload if countdown just expired (not already ended from backend)
+                        if (this.status === 'active' && !this.alreadyEnded && !this.isCalculating) {
+                            this.triggerResultsRefresh();
+                        }
+
                         this.status = 'closed';
                         this.days = '00';
                         this.hours = '00';
                         this.minutes = '00';
                         this.seconds = '00';
                     }
+                },
+
+                triggerResultsRefresh() {
+                    this.isCalculating = true;
+
+                    // Show "Calculating..." for 2 seconds, then reload
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 },
 
                 calculateTime(distance) {

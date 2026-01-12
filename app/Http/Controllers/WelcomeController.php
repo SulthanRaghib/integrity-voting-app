@@ -20,11 +20,32 @@ class WelcomeController extends Controller
 
         // Stats
         $totalVotes = Vote::count();
-        $candidates = Candidate::orderBy('order_number')->get();
 
-        // Voting Status check helpers for the view
-        $isVotingOpen = $settings ? \App\Models\ElectionSetting::isVotingOpen() : false;
+        // Check if voting has ended to determine result display
+        $isVotingOpen = $settings ? ElectionSetting::isVotingOpen() : false;
+        $hasVotingEnded = $settings && $settings->end_at && now()->greaterThan($settings->end_at);
 
-        return view('welcome', compact('settings', 'totalVotes', 'candidates', 'isVotingOpen'));
+        // Fetch candidates with different ordering based on voting status
+        if ($hasVotingEnded && $totalVotes > 0) {
+            // Voting ended: Show LEADERBOARD (ordered by votes DESC)
+            $candidates = Candidate::withCount('votes')
+                ->orderBy('votes_count', 'desc')
+                ->orderBy('order_number', 'asc') // Tie-breaker
+                ->get()
+                ->map(function ($candidate, $index) use ($totalVotes) {
+                    $candidate->rank = $index + 1;
+                    $candidate->vote_percentage = $totalVotes > 0
+                        ? round(($candidate->votes_count / $totalVotes) * 100, 1)
+                        : 0;
+                    return $candidate;
+                });
+        } else {
+            // Voting active or upcoming: Show candidates by order_number
+            $candidates = Candidate::withCount('votes')
+                ->orderBy('order_number')
+                ->get();
+        }
+
+        return view('welcome', compact('settings', 'totalVotes', 'candidates', 'isVotingOpen', 'hasVotingEnded'));
     }
 }
