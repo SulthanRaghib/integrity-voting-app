@@ -40,6 +40,8 @@ return [
 
         'public' => [
             'driver' => 'local',
+            // karena menggunakan https://dash.infinityfree.com/ tidak bisa menggunakan storage_path('app/public')
+            // 'root' => storage_path('app/public'),
             'root' => public_path('storage'),
             'url' => rtrim(env('APP_URL'), '/') . '/storage',
             'visibility' => 'public',
