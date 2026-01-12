@@ -13,12 +13,12 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Create or update the Filament admin account.
-        // Note: The User model casts 'password' => 'hashed', so provide the plain password
+        // The User model casts 'password' => 'hashed', so we provide the plain password.
         \App\Models\User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('password'),
+                'password' => 'password', // Plain text, handled by 'hashed' cast
                 'email_verified_at' => now(),
             ]
         );
