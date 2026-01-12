@@ -15,7 +15,7 @@ class CandidateForm
             ->components([
                 TextInput::make('name')->required()->maxLength(255),
                 TextInput::make('order_number')->numeric()->default(0),
-                FileUpload::make('photo_path')->image()->directory('candidates')->required(),
+                FileUpload::make('photo_path')->image()->directory('candidates')->disk('public')->required(),
                 RichEditor::make('vision')->columnSpanFull(),
                 RichEditor::make('mission')->columnSpanFull(),
             ]);

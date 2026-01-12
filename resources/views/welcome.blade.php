@@ -194,7 +194,7 @@
                         class="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-200 transition-all duration-300 overflow-hidden flex flex-col">
                         <div class="aspect-w-3 aspect-h-2 bg-slate-200 overflow-hidden relative h-64">
                             @if ($candidate->photo_path)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::url($candidate->photo_path) }}"
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($candidate->photo_path) }}"
                                     alt="{{ $candidate->name }}"
                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
                             @else
@@ -213,7 +213,7 @@
                         <div class="p-6 flex-1 flex flex-col items-center text-center">
                             <h3 class="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                                 {{ $candidate->name }}</h3>
-                            <p class="text-sm text-slate-500 mt-1">Kandidat #{{ $candidate->id }}</p>
+                            <p class="text-sm text-slate-500 mt-1">Kandidat #{{ $candidate->order_number }}</p>
                             <div class="mt-6">
                                 @auth
                                     <a href="{{ route('voting.index') }}"

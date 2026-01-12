@@ -120,12 +120,12 @@
                                     class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span
                                         class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Kandidat
-                                        #{{ $candidate->id }}</span>
+                                        #{{ $candidate->order_number }}</span>
                                 </div>
 
                                 <div class="aspect-w-4 aspect-h-3 bg-slate-100 h-64 overflow-hidden">
                                     @if ($candidate->photo_path)
-                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($candidate->photo_path) }}"
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($candidate->photo_path) }}"
                                             alt="{{ $candidate->name }}"
                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     @else
