@@ -6,8 +6,7 @@
             Dasbor
         </a>
     @else
-        <a href="{{ route('filament.admin.auth.login') }}"
-            class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+        <a href="{{ route('login') }}" class="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Login
         </a>
     @endauth
@@ -128,7 +127,7 @@
                 </a>
             @else
                 <div class="space-y-4">
-                    <a href="{{ route('filament.admin.auth.login') }}"
+                    <a href="{{ route('login') }}"
                         class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-full text-white bg-indigo-600 hover:bg-indigo-700 md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 w-full sm:w-auto">
                         Login untuk Memilih
                         <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"

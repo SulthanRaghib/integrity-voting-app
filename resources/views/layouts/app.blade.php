@@ -26,6 +26,8 @@
             }
         }
     </style>
+    @filamentStyles
+    @vite('resources/css/app.css')
     @stack('styles')
 </head>
 
@@ -68,6 +70,8 @@
         </footer>
     @show
 
+    @filamentScripts
+    @vite('resources/js/app.js')
     @stack('scripts')
 </body>
 
