@@ -19,6 +19,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -27,7 +30,12 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->login(\App\Filament\Auth\CustomLogin::class)
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn() => view('filament.auth.google-button')
+            )
             ->colors([
                 'primary' => Color::Amber,
             ])
