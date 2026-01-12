@@ -65,7 +65,7 @@
                             </div>
 
                             <div class="mt-auto">
-                                <form action="{{ route('voting.store') }}" method="POST" class="vote-form"
+                                <form action="{{ route('vote.store') }}" method="POST" class="vote-form"
                                     onsubmit="return confirm('Are you sure you want to vote for {{ $candidate->name }}? This cannot be undone.');">
                                     @csrf
                                     <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
