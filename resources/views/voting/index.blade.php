@@ -283,16 +283,16 @@
                                                             <div class="h-8 w-1 bg-indigo-600 rounded-full"></div>
                                                             <h4 class="text-2xl font-bold text-slate-900">Visi & Misi</h4>
                                                         </div>
-                                                        <div class="prose prose-indigo prose-sm max-w-none bg-white">
+                                                        <div class="rich-text-content bg-white">
                                                             <div class="mb-4">
                                                                 <strong class="text-indigo-700 block mb-1">Visi</strong>
                                                                 <div x-html="activeCandidate.vision"
-                                                                    class="text-slate-600"></div>
+                                                                    class="rich-text-content text-slate-600"></div>
                                                             </div>
                                                             <div>
                                                                 <strong class="text-indigo-700 block mb-1">Misi</strong>
                                                                 <div x-html="activeCandidate.mission"
-                                                                    class="text-slate-600"></div>
+                                                                    class="rich-text-content text-slate-600"></div>
                                                             </div>
                                                         </div>
                                                     </section>
@@ -306,7 +306,7 @@
                                                             <h4 class="text-xl font-bold text-slate-900">Riwayat Pendidikan
                                                             </h4>
                                                         </div>
-                                                        <div class="prose prose-sm max-w-none text-slate-600"
+                                                        <div class="rich-text-content text-slate-600"
                                                             x-html="activeCandidate.education_history"></div>
                                                     </section>
 
@@ -317,7 +317,7 @@
                                                             <h4 class="text-xl font-bold text-slate-900">Pengalaman
                                                                 Organisasi</h4>
                                                         </div>
-                                                        <div class="prose prose-sm max-w-none text-slate-600"
+                                                        <div class="rich-text-content text-slate-600"
                                                             x-html="activeCandidate.organization_experience"></div>
                                                     </section>
                                                 </div>
@@ -410,6 +410,39 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .rich-text-content {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #1f2937;
+        }
+
+        .rich-text-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .rich-text-content ol,
+        .rich-text-content ul {
+            margin-left: 1.5rem;
+            padding-left: 1.5rem;
+            list-style-position: outside;
+        }
+
+        .rich-text-content ol {
+            list-style-type: decimal;
+        }
+
+        .rich-text-content ul {
+            list-style-type: disc;
+        }
+
+        .rich-text-content li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>
